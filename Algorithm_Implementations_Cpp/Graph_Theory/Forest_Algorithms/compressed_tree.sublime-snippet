@@ -1,0 +1,29 @@
+<snippet>
+	<content><![CDATA[
+struct compressed_tree: graph<int>{
+	int root; // arborescence rooted at root
+	vector<int> order; // dfs-order of compressed tree
+	// Build the smallest tree containing all nodes in the subset
+	// O(size(subset) * log(n))
+	template<class lca_solver_t>
+	void compress(const lca_solver_t &ls, const vector<int> &subset){
+		assert(ls.n <= n);
+		assert(!subset.empty());
+		for(auto u: order) adj[u].clear();
+		edge.clear();
+		order = subset;
+		const auto &p = ls.pos;
+		auto cmp = [&](int u, int v){ return p[u] != p[v] ? p[u] < p[v] : u < v; };
+		sort(order.begin(), order.end(), cmp);
+		order.erase(unique(order.begin(), order.end()), order.end());
+		for(auto i = 1, size = (int)order.size(); i < size; ++ i) order.push_back(ls.lca(order[i - 1], order[i]));
+		sort(order.begin(), order.end(), cmp), order.erase(unique(order.begin(), order.end()), order.end());
+		for(auto i = 1; i < (int)order.size(); ++ i) orient(ls.lca(order[i - 1], order[i]), order[i], 1);
+	}
+};
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>compressed_tree</tabTrigger> -->
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>source.c++</scope> -->
+</snippet>

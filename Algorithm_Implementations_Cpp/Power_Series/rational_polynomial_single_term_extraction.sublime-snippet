@@ -1,0 +1,35 @@
+<snippet>
+	<content><![CDATA[
+// Returns [X^i]p(X)/q(X)
+// T must be of modular type
+// deg(p) < deg(q) must hold
+// O(n * log(n) * log(i))
+// Requires modular and number_theoric_transform
+template<class T, class U, class FFT = ntt>
+T rational_polynomial_single_term_extraction(vector<T> p, vector<T> q, U i){
+	assert(!q.empty() && q[0]);
+	int n = 1 << __lg((int)q.size() << 1 | 1) + 1;
+	assert(i >= 0 && p.size() < q.size() && (T::mod() - 1) % n == 0);
+	p.resize(n);
+	FFT::transform(p);
+	q.resize(n);
+	FFT::transform(q);
+	T inv2 = T::mod() + 1 >> 1;
+	for(; i; i >>= 1){
+		for(auto i = 0; i < n; ++ i) p[i] *= q[n >> 1 ^ i];
+		if(~i & 1) for(auto i = 0; i < n >> 1; ++ i) p[i] = inv2 * (p[i] + p[n >> 1 ^ i]);
+		else for(auto i = 0; i < n >> 1; ++ i) p[i] = inv2 * (i ? -FFT::root[n - i] : T(1)) * (p[i] - p[n >> 1 ^ i]);
+		p.resize(n >> 1);
+		FFT::double_up(p);
+		for(auto i = 0; i < n >> 1; ++ i) q[i] *= q[n >> 1 ^ i];
+		q.resize(n >> 1);
+		FFT::double_up(q);
+	}
+	return accumulate(p.begin(), p.end(), T(0)) / accumulate(q.begin(), q.end(), T(0));
+}
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>rational_polynomial_single_term_extraction</tabTrigger> -->
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>source.c++</scope> -->
+</snippet>
